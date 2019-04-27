@@ -9,12 +9,14 @@
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
-
+        <!--dependency required for spring batch begins-->
+        <!--spring-batch-core is the minimum dependency required-->
         <dependency>
             <groupId>org.springframework.batch</groupId>
             <artifactId>spring-batch-core</artifactId>
             <version>4.0.0.RELEASE</version>
         </dependency>
+        <!--dependency required for spring batch ends-->
     </dependencies>
 
 </project>

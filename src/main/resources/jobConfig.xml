@@ -7,7 +7,7 @@
       http://www.springframework.org/schema/beans/spring-beans-3.2.xsd ">
     <import resource="context.xml" />
     <!-- Defining a bean -->
-    <bean id = "tasklet" class = "jobs.MyTaskLet" />
+    <bean id = "tasklet" class = "jobs.HelloWorldTaskLet" />
     <!-- Defining a job-->
     <batch:job id = "helloWorldJob">
         <!-- Defining a Step -->
