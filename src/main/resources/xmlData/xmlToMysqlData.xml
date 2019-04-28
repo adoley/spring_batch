@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persons>
+    <person>
+        <fname>
+            apollo5
+        </fname>
+        <lname>
+            doley5
+        </lname>
+    </person>
+    <person>
+        <fname/>
+        <lname>
+            doley6
+        </lname>
+    </person>
+</persons>
+
+<!--If person first name is empty then that person details will not be entered
+ in DB, that logic is written in XmlToMysqlProcessor class-->

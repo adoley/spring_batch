@@ -1,0 +1,96 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                           http://www.springframework.org/schema/batch
+                           http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-3.0.xsd
+                           http://www.springframework.org/schema/jdbc
+                           http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd">
+
+    <!--MapJobRepositoryFactoryBean is use if we want to store the jobRepository in memory.
+    If we want to use Database as job repository then we use JobRepositoryFactoryBean-->
+    <bean id="jobRepository"
+          class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="databaseType" value="mysql"/>
+    </bean>
+
+    <bean id="transactionManager"
+          class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+
+    <bean id="jobLauncher"
+          class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository"/>
+    </bean>
+
+    <!-- connect to MySQL database -->
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/batch"/>
+        <property name="username" value="root"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <!-- create job-meta tables automatically -->
+    <jdbc:initialize-database data-source = "dataSource">
+        <jdbc:script location = "classpath:org/springframework/batch/core/schema-drop-mysql.sql"/>
+        <jdbc:script location = "classpath:org/springframework/batch/core/schema-mysql.sql"/>
+    </jdbc:initialize-database>
+
+    <batch:job id="xmlToMysqlJob">
+        <batch:step id="step1">
+            <batch:tasklet>
+                <batch:chunk reader="xmlItemReader" processor="itemProcessor" writer = "mysqlItemWriter" commit-interval="50">
+                </batch:chunk>
+            </batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+    <!--Here fragmentRootElementName value and aliases key in customUnMarshaller should be same
+    and this should match with the input xml data tag-->
+    <bean id="xmlItemReader"
+          class="org.springframework.batch.item.xml.StaxEventItemReader">
+        <property name="fragmentRootElementName" value="person"/>
+        <property name="resource" value="xmlData/xmlToMysqlData.xml"/>
+        <property name = "unmarshaller" ref = "customUnMarshaller" />
+    </bean>
+
+    <bean id = "customUnMarshaller" class = "org.springframework.oxm.xstream.XStreamMarshaller">
+        <property name = "aliases">
+            <util:map id = "aliases">
+                <entry key = "person" value = "model.Person" />
+            </util:map>
+        </property>
+    </bean>
+    <bean id="itemProcessor" class="jobs.XmlToMysqlProcessor"/>
+
+    <bean id="mysqlItemWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="sql">
+            <value>
+                <![CDATA[
+                    insert into batch.person (fname, lname)
+                    values (:fname,:lname);
+                ]]>
+            </value>
+        </property>
+        <!--Need to use ItemPreparedStatementSetter (Same like row mapper) for custom setter-->
+        <property name = "itemSqlParameterSourceProvider">
+            <bean class = "org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider" />
+        </property>
+    </bean>
+
+</beans>
+<!--Steps in spring batch
+(1) Read data from input source(Extract)
+(2) Transform or process the input data (Transform).This step is optional
+(3) Load the data to sink that is return from step2 if step2 is present else load the data that is return from step1
+    to sink.
+-->
