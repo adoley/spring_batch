@@ -19,4 +19,12 @@ public class Person {
     public void setLname(String lname) {
         this.lname = lname;
     }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "fname='" + fname + '\'' +
+                ", lname='" + lname + '\'' +
+                '}';
+    }
 }

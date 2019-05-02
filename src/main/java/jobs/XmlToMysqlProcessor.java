@@ -5,7 +5,7 @@ import org.springframework.batch.item.ItemProcessor;
 
 public class XmlToMysqlProcessor implements ItemProcessor<Person,Person> {
 
-    public Person process(Person person) throws Exception {
+    public Person process(Person person) {
         System.out.println("inside XmlToMysqlProcessor");
         if(person.getFname().trim().equals(""))
             return null;
